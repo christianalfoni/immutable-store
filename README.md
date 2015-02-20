@@ -57,13 +57,13 @@ store.todos.list[0] = 'foo';
 store.todos.list // []
 
 store.todos.push('bar'); 
-store,todos.list // []
+store.todos.list // []
 
 store.todos.splice(0, 0, 'something'); 
 store.todos.list // []
 ```
 
-The mutation of the store is actually returned. So to do a mutation you have to override the existing store:
+When a mutation is done to some part of a store the new store is returned. So to do a mutation you have to override the existing store:
 
 ```javascript
 var store = Store({
@@ -86,7 +86,7 @@ store = store.todos.splice(0, 0, 'something');
 store.todos.list // ['something', 'foo']
 ```
 
-This will ensure that your store will never be mutated, unless you override it. You can of course still use methods like `.map()`, `.filter()` etc. as those are not methods that mutates the array. They return a copy and will therefor work as normal. So why is this a good thing?
+This will ensure that your store will never be mutated, unless you override it. You can of course still use methods like `.map()`, `.filter()` etc. as those are not methods that mutates the store. They will just return an array as expected. So why is this a good thing?
 
 ## Shallow checking
 In an application you will grab references from the store. To verify if something within the reference has changed you can now do a shallow check. An example of this would be if something in the todos list would change. Maybe a new todo was added, removed or changed. That would cause the list itself to change reference and also the store itself. Your application would know this by just checking its existing reference to the list with the new one:
@@ -310,7 +310,7 @@ By using the immutable-store we get three advantages:
 ## Performance
 If you compare **immutable-store** to the high performance library from Facebook [immutable-js](https://github.com/facebook/immutable-js) immutable-store is around 80% slower on setters, but 100% faster on getters. That said, number of operations are huge, so neither will ever cause a bottleneck in your application.
 
-## Contributing
+## Contributing / Project
 - `npm install` install deps
 - `npm test` runs the tests
 - `npm run devtest` runs a watcher on tests
