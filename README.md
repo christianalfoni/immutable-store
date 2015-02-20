@@ -78,12 +78,12 @@ store.todos.list // []
 // Notice the new version of the store is
 // returned
 store = store.todos.push('bar'); 
-store.todos.list // ['foo']
+store.todos.list // ['bar']
 
 // Notice the new version of the store is
 // returned
 store = store.todos.splice(0, 0, 'something'); 
-store.todos.list // ['something', 'foo']
+store.todos.list // ['something', 'bar']
 ```
 
 This will ensure that your store will never be mutated, unless you override it. You can of course still use methods like `.map()`, `.filter()` etc. as those are not methods that mutates the store. They will just return an array as expected. So why is this a good thing?
