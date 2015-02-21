@@ -24,6 +24,8 @@ var store = Store({
 ```
 This store in this example has a **home**-domain and an **admin**-domain. When these domains are set you can not change them. This means that the top level of the store will never be mutable.
 
+A store contains the data related to what you are displaying in your application. As you can see in the demo the store is put into localStorage and when refreshing the app it is back in its exact state. If you need to cache data, store larger sets of entities etc. that is not the job of the immutable-store. Only put data that you need in the current state of your app into the store.
+
 ## Defining state
 ```javascript
 var store = Store({
