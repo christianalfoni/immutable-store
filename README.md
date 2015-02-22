@@ -10,8 +10,11 @@ React JS is still missing a good concept on passing a single store down through 
 `npm install immutable-store` or `bower install immutable-store`. You can also download the distributed file in the `dist/` folder.
 
 ## Changes
+**0.1.1** 
+- Fixed bug with **set** where value is object/array
+
 **0.1.0**
-Initial commit
+- Initial commit
 
 ## The concept
 You use one single store for you application and it is based on domains.

@@ -14,8 +14,9 @@ var StoreObject = function () {
             }
           });
         }
-
+        helpers.currentPath.push(key);
         obj[key] = traverse(helpers, value);
+        helpers.currentPath.pop();
       });
     }
   };
