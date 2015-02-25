@@ -6,15 +6,21 @@ The library is heavily inspired by [Freezer](https://github.com/arqex/freezer), 
 
 React JS is still missing a good concept on passing a single store down through the components. Currently you have to pass that state using props, making your components dependant on each other. Hopefully there will soon be a concept where this is solved a bit more elegantly.
 
+## Overview
+- [Installing](#Installing)
+- [The concept](#The-concept)
+- [Defining state](#Defining-state)
+- [Shallow checking](#Shallow-checking)
+- [So why do we need this?](#So-why-do-we-need-this)
+- [So how do we actually put everything together?](#So-how-do-we-actually-put-everything-together)
+- [What do we gain specifically?](#What-do-we-gain-specifically)
+- [Performance](#Performance)
+- [Changes](#Changes)
+- [Contributing](#Contributing)
+
+
 ## Installing
 `npm install immutable-store` or `bower install immutable-store`. You can also download the distributed file in the `dist/` folder.
-
-## Changes
-**0.1.1** 
-- Fixed bug with **set** where value is object/array
-
-**0.1.0**
-- Initial commit
 
 ## The concept
 You use one single store for you application and it is based on domains.
@@ -312,10 +318,42 @@ By using the immutable-store we get three advantages:
 
 3. We get an extremely simple API for handling immutable data
 
+## API
+```javascript
+var store = Store({
+  domain: {
+    array: [],
+    object: {}
+  }
+});
+
+store = store.domain.array.push('foo');
+store = store.domain.array.splice(0, 1);
+store = store.domain.array.concat('bar');
+store = store.domain.array.pop();
+store = store.domain.array.unshift('something');
+store = store.domain.array.shift();
+store.domain.array.toJS(); // [] - plain array
+
+store = store.domain.object.set('foo', 'bar');
+store = store.domain.object.merge({foo: 'overridenBar'});
+store.domain.object.toJS(); // {foo: 'overridenBar'} - plain object
+```
+
 ## Performance
 If you compare **immutable-store** to the high performance library from Facebook [immutable-js](https://github.com/facebook/immutable-js) immutable-store is around 80% slower on setters, but 100% faster on getters. That said, number of operations are huge, so neither will ever cause a bottleneck in your application.
 
-## Contributing / Project
+## Changes
+**0.2.0**
+- Added **toJS()** and **merge()** methods
+
+**0.1.1** 
+- Fixed bug with **set** where value is object/array
+
+**0.1.0**
+- Initial commit
+
+## Contributing
 - `npm install` install deps
 - `npm test` runs the tests
 - `npm run devtest` runs a watcher on tests

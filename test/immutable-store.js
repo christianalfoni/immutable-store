@@ -195,3 +195,83 @@ exports['should allow for array to be set, going through items to fix paths'] = 
   test.deepEqual(store.foo.list[0].__.path, ['foo', 'list', 0]);
   test.done();
 };
+
+exports['should convert to plain array when using toJS'] = function (test) {
+  var store = new Store({
+    foo: {
+      list: []
+    }
+  });
+  var array = store.foo.list.toJS();
+  test.equal(array.__proto__, [].__proto__);
+  test.done();
+};
+
+exports['should convert to plain object when using toJS'] = function (test) {
+  var store = new Store({
+    foo: {
+      bar: {}
+    }
+  });
+  var object = store.foo.bar.toJS();
+  test.equal(object.__proto__, {}.__proto__);
+  test.done();
+};
+
+exports['should convert deeply when using toJS'] = function (test) {
+  var store = new Store({
+    foo: {
+      list: [{
+        foo: []
+      }, {
+        bar: 'foo'
+      }]
+    }
+  });
+  var array = store.foo.list.toJS();
+  test.equal(array.__proto__, [].__proto__);
+  test.equal(array[0].__proto__, {}.__proto__);
+  test.equal(array[0].foo.__proto__, [].__proto__);
+  test.equal(array[1].__proto__, {}.__proto__);
+  test.done();
+};
+
+exports['should merge object'] = function (test) {
+  var store = new Store({
+    foo: {
+      bar: {
+        foo: 'bar'
+      }
+    }
+  });
+  var store = store.foo.bar.merge({test: 123});
+  test.equal(store.foo.bar.foo, 'bar');
+  test.equal(store.foo.bar.test, 123);
+  test.done();
+};
+
+exports['should convert objects and arrays when merging'] = function (test) {
+  var store = new Store({
+    foo: {
+      bar: {
+        foo: 'bar'
+      }
+    }
+  });
+  var store = store.foo.bar.merge({obj: {}, array: []});
+  test.ok(store.foo.bar.obj.__);
+  test.ok(store.foo.bar.array.__);
+  test.done();
+};
+
+exports['should throw when trying to merge a non object'] = function (test) {
+  var store = new Store({
+    foo: {
+      bar: {}
+    }
+  });
+  test.throws(function () {
+    store = store.foo.bar.merge([]);
+  });
+  test.done();
+};

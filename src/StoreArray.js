@@ -1,4 +1,5 @@
 'use strict';
+var utils = require('./utils.js');
 var StoreArray = function () {
 
   function StoreArray(items) {
@@ -88,6 +89,9 @@ var StoreArray = function () {
     return this.__.update(this.__.path, function (obj) {
       Array.prototype.pop.call(obj);
     });
+  };
+  StoreArray.prototype.toJS = function () {
+    return utils.toJS(this);
   };
 
   return function (items, helpers) {
