@@ -21,11 +21,11 @@ exports['can not mutate the store by native mutation'] = function (test) {
   test.done();
 };
 
-exports['can not mutate the store by using set'] = function (test) {
+exports['can mutate the store by using set'] = function (test) {
   var store = new Store({});
-  test.throws(function () {
-    store = store.set('foo', 'bar');
-  });
+  var newStore = store.set('foo', 'bar');
+  test.ok(!store.foo);
+  test.equal(newStore.foo, 'bar');
   test.done();
 };
 

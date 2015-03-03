@@ -67,7 +67,7 @@ var updatePath = function (helpers, path, cb) {
 
   // Make ready a new store with its special
   // domain getters, then freeze it
-  var store = {};
+  var store = StoreObject(newStore, helpers);
   Object.keys(newStore).forEach(function (key) {
     Object.defineProperty(store, key, {
       enumerable: true,
@@ -83,7 +83,7 @@ var updatePath = function (helpers, path, cb) {
 };
 
 var createStore = function (helpers, state) {
-  var store = {};
+  var store = StoreObject({}, helpers);
   Object.keys(state).forEach(function (key) {
     helpers.currentPath.push(key);
     var branch = traverse(helpers, state[key]);

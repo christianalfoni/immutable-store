@@ -4,7 +4,7 @@ The [immutable-js](https://github.com/facebook/immutable-js) library from Facebo
 
 The library is heavily inspired by [Freezer](https://github.com/arqex/freezer), but uses a different approach both internally and as concept. Its goal is to be a contribution to FLUX architecture where you have a central storage that can be passed down through your components. This makes it very easy to create isomorphic apps.
 
-React JS is still missing a good concept on passing a single store down through the components. Currently you have to pass that state using props, making your components dependant on each other. Hopefully there will soon be a concept where this is solved a bit more elegantly.
+React JS is still missing a good concept on passing a single store down through the components. Currently you have to pass that state using props, making your components dependant on each other. Hopefully there will soon be a concept where this is solved a bit more elegantly. I wrote an article about this, [True isomorphic apps with React and Baobab](http://christianalfoni.github.io/javascript/2015/03/01/true-isomorphic-apps-with-react-and-baobab.html). It does not use immutable store, but it could very well have been.
 
 ## Overview
 - [Installing](#Installing)
@@ -23,24 +23,25 @@ React JS is still missing a good concept on passing a single store down through 
 `npm install immutable-store` or `bower install immutable-store`. You can also download the distributed file in the `dist/` folder.
 
 ## The concept
-You use one single store for you application and it is based on domains.
+You use one single or multiple stores for your application. Put plain objects, arrays and primitives in the store.
 
 ```javascript
 var store = Store({
-  home: {},
-  admin: {}
+  todos: [],
+  isLoading: false,
+  filter: {
+    completed: true,
+    active: true
+  }
 });
 ```
-This store in this example has a **home**-domain and an **admin**-domain. When these domains are set you can not change them. This means that the top level of the store will never be mutable.
 
 A store contains the data related to what you are displaying in your application. As you can see in the demo the store is put into localStorage and when refreshing the app it is back in its exact state. If you need to cache data, store larger sets of entities etc. that is not the job of the immutable-store. Only put data that you need in the current state of your app into the store.
 
 ## Defining state
 ```javascript
 var store = Store({
-  todos: {
-    list: []
-  }
+  todos: []
 });
 ```
 
@@ -48,53 +49,47 @@ So the domain **todos** now has a list. You grab that list simply by:
 
 ```javascript
 var store = Store({
-  todos: {
-    list: []
-  }
+  todos: []
 });
-store.todos.list // []
+store.todos // []
 ```
 
 But you are not able to change the list in any way, it is completely immutable:
 
 ```javascript
 var store = Store({
-  todos: {
-    list: []
-  }
+  todos: []
 });
 
-store.todos.list[0] = 'foo'; 
-store.todos.list // []
+store.todos[0] = 'foo'; 
+store.todos[0] // []
 
 store.todos.push('bar'); 
-store.todos.list // []
+store.todos // []
 
 store.todos.splice(0, 0, 'something'); 
-store.todos.list // []
+store.todos // []
 ```
 
 When a mutation is done to some part of a store the new store is returned. So to do a mutation you have to override the existing store:
 
 ```javascript
 var store = Store({
-  todos: {
-    list: []
-  }
+  todos: []
 });
 
-store.todos.list[0] = 'foo';  // Will never work
-store.todos.list // []
+store.todos[0] = 'foo';  // Will never work
+store.todos // []
 
 // Notice the new version of the store is
 // returned
 store = store.todos.push('bar'); 
-store.todos.list // ['bar']
+store.todos // ['bar']
 
 // Notice the new version of the store is
 // returned
 store = store.todos.splice(0, 0, 'something'); 
-store.todos.list // ['something', 'bar']
+store.todos // ['something', 'bar']
 ```
 
 This will ensure that your store will never be mutated, unless you override it. You can of course still use methods like `.map()`, `.filter()` etc. as those are not methods that mutates the store. They will just return an array as expected. So why is this a good thing?
@@ -104,20 +99,18 @@ In an application you will grab references from the store. To verify if somethin
 
 ```javascript
 var store = Store({
-  todos: {
-    list: [{
-      id: 0,
-      title: 'This, I have to do',
-      completed: false
-    }]
-  }
+  todos: [{
+    id: 0,
+    title: 'This, I have to do',
+    completed: false
+  }]
 });
 
 // Somewhere in the application you attach the reference
-this.todos = store.todos.list;
+this.todos = store.todos;
 
 // A change is made
-store = store.todos.list[0].set('completed', true);
+store = store.todos[0].set('completed', true);
 
 // Back at your code you can check
 if (this.todos !== store.todos.list) {
@@ -134,9 +127,7 @@ So let us create an example:
 
 ```javascript
 var store = Store({
-  todos: {
-    list: []
-  }
+  todos: []
 });
 
 var App = React.createClass({
@@ -145,7 +136,7 @@ var App = React.createClass({
     return (
       <div>
         <h1>My application</h1>
-        <TodosList list={this.props.todos.list}/>
+        <TodosList list={this.props.todos}/>
       </div>
     );
   }
@@ -180,7 +171,7 @@ var TodosList = React.createClass({
   render: function () {
     return (
       <ul>
-        {this.props.list.map(this.renderTodo)}
+        {this.props.todos.map(this.renderTodo)}
       </ul>
     );
   }
@@ -215,9 +206,7 @@ var events = require('./events.js');
 
 // We define our store
 var store = Store({
-  todos: {
-    list: []
-  }
+  todos: []
 });
 
 // To share store between multiple files we
@@ -254,7 +243,7 @@ module.exports = {
 
     // We update the todos list and put it into
     // a new store reference
-    store = store.todos.list.push({
+    store = store.todos.push({
       title: title,
       completed: false
     });
@@ -286,7 +275,7 @@ var App = React.createClass({
   render: function () {
     return (
       <div>
-        <h1>You got {this.props.todos.list.length} todos</h1>
+        <h1>You got {this.props.todos.length} todos</h1>
         <form onSubmit={this.addTodo}>
           <input ref="input"/>
         </form>
@@ -321,29 +310,33 @@ By using the immutable-store we get three advantages:
 ## API
 ```javascript
 var store = Store({
-  domain: {
-    array: [],
-    object: {}
-  }
+  array: [],
+  object: {},
+  primitive: 'foo'
 });
 
-store = store.domain.array.push('foo');
-store = store.domain.array.splice(0, 1);
-store = store.domain.array.concat('bar');
-store = store.domain.array.pop();
-store = store.domain.array.unshift('something');
-store = store.domain.array.shift();
-store.domain.array.toJS(); // [] - plain array
+store = store.array.push('foo');
+store = store.array.splice(0, 1);
+store = store.array.concat('bar');
+store = store.array.pop();
+store = store.array.unshift('something');
+store = store.array.shift();
+store.array.toJS(); // [] - plain array
 
-store = store.domain.object.set('foo', 'bar');
-store = store.domain.object.merge({foo: 'overridenBar'});
-store.domain.object.toJS(); // {foo: 'overridenBar'} - plain object
+store = store.object.set('foo', 'bar');
+store = store.object.merge({foo: 'overridenBar'});
+store.object.toJS(); // {foo: 'overridenBar'} - plain object
+
+store = store.set('primitive', 'bar');
 ```
 
 ## Performance
 If you compare **immutable-store** to the high performance library from Facebook [immutable-js](https://github.com/facebook/immutable-js) immutable-store is around 80% slower on setters, but 100% faster on getters. That said, number of operations are huge, so neither will ever cause a bottleneck in your application.
 
 ## Changes
+**0.2.1**
+- Fixed using **set()** on the store itself
+
 **0.2.0**
 - Added **toJS()** and **merge()** methods
 
