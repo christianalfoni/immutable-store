@@ -3,7 +3,8 @@ var utils = require('./utils.js');
 var StoreArray = function () {
 
   function StoreArray(items) {
-    var inst = Array.apply(Array, items);
+    var inst = Array.apply(Array);
+    inst = inst.concat(items);
     inst.__proto__ = StoreArray.prototype;
     return inst;
   }

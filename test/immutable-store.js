@@ -275,3 +275,11 @@ exports['should throw when trying to merge a non object'] = function (test) {
   });
   test.done();
 };
+
+exports['should work with number primitives in array'] = function (test) {
+  var store = new Store({
+    items: [0]
+  });
+  test.equal(store.items[0], 0);
+  test.done();
+};

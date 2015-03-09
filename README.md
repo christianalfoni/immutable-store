@@ -334,6 +334,9 @@ store = store.set('primitive', 'bar');
 If you compare **immutable-store** to the high performance library from Facebook [immutable-js](https://github.com/facebook/immutable-js) immutable-store is around 80% slower on setters, but 100% faster on getters. That said, number of operations are huge, so neither will ever cause a bottleneck in your application.
 
 ## Changes
+**0.2.2**
+- Fixed array bug using number primitives
+
 **0.2.1**
 - Fixed using **set()** on the store itself
 
