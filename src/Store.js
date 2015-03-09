@@ -65,8 +65,8 @@ var updatePath = function (helpers, path, cb) {
     Object.freeze(destination);
   });
 
-  // Make ready a new store with its special
-  // domain getters, then freeze it
+  // Make ready a new store and freeze it
+      helpers.currentPath.pop();
   var store = StoreObject(newStore, helpers);
   Object.keys(newStore).forEach(function (key) {
     Object.defineProperty(store, key, {
@@ -78,7 +78,6 @@ var updatePath = function (helpers, path, cb) {
     });
   });
   Object.freeze(store);
-
   return store;
 };
 

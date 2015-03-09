@@ -283,3 +283,13 @@ exports['should work with number primitives in array'] = function (test) {
   test.equal(store.items[0], 0);
   test.done();
 };
+
+exports['the path to a store should be empty'] = function (test) {
+  var store = new Store({
+    items: [0]
+  });
+  test.equal(store.__.path.length, 0);
+  store = store.items.push('foo');
+  test.equal(store.__.path.length, 0);
+  test.done();
+};

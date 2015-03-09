@@ -13,6 +13,7 @@ var StoreArray = function () {
     return this.__.update(this.__.path, function (obj, helpers, traverse) {
       helpers.currentPath.push(obj.length);
       Array.prototype.push.call(obj, traverse(helpers, item));
+      helpers.currentPath.pop();
     });
   };
   StoreArray.prototype.splice = function () {
