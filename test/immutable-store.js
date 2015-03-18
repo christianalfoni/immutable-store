@@ -293,3 +293,31 @@ exports['the path to a store should be empty'] = function (test) {
   test.equal(store.__.path.length, 0);
   test.done();
 };
+
+exports['the path to a store should be empty after deep set'] = function (test) {
+  var store = new Store({
+    foo: {
+      bar: {
+        foo: 'bar'
+      }
+    }
+  });
+  test.equal(store.__.path.length, 0);
+  var store = store.foo.bar.set('test', 123);
+  test.equal(store.__.path.length, 0);
+  test.done();
+};
+
+exports['the path to a store should be empty after deep merge'] = function (test) {
+  var store = new Store({
+    foo: {
+      bar: {
+        foo: 'bar'
+      }
+    }
+  });
+  test.equal(store.__.path.length, 0);
+  var store = store.foo.bar.merge({test: 123});
+  test.equal(store.__.path.length, 0);
+  test.done();
+};
