@@ -1,6 +1,6 @@
 {
   "name": "immutable-store",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "main": "src/Store.js",
   "dependencies": {}
 }
