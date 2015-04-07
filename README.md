@@ -308,6 +308,17 @@ By using the immutable-store we get three advantages:
 3. We get an extremely simple API for handling immutable data
 
 ## API
+
+The following data structures can be saved in a Store:
+- Object literals
+- Arrays
+- Primitives (e.g. strings, numbers, booleans)
+
+The following data structures are *not* supported:
+- [Getters](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/get) on objects
+- Constructor functions (i.e. ES3 classes)
+- ES6 classes
+
 ```javascript
 var store = Store({
   array: [],
