@@ -73,9 +73,9 @@ var StoreArray = function () {
 
     });
   };
-  StoreArray.prototype.shift = function (item) {
+  StoreArray.prototype.shift = function () {
     return this.__.update(this.__.path, function (obj, helpers, traverse) {
-      Array.prototype.shift.call(obj, traverse(helpers, item));
+      Array.prototype.shift.call(obj);
 
       // Update paths
       for (var x = 0; x < obj.length; x++) {
