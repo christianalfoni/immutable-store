@@ -335,10 +335,12 @@ store = store.array.shift();
 store.array.toJS(); // [] - plain array
 
 store = store.object.set('foo', 'bar');
+store = store.object.unset('foo');
 store = store.object.merge({foo: 'overridenBar'});
 store.object.toJS(); // {foo: 'overridenBar'} - plain object
 
 store = store.set('primitive', 'bar');
+store = store.unset('primitive');
 ```
 
 ## Performance

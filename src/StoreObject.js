@@ -34,6 +34,11 @@ var StoreObject = function () {
           helpers.currentPath.pop();
         });
       });
+    },
+    unset: function(key) {
+      return this.__.update(this.__.path, function (obj) {
+        delete obj[key];
+      });
     }
   };
 
