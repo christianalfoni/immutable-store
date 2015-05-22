@@ -276,6 +276,40 @@ exports['should throw when trying to merge a non object'] = function (test) {
   test.done();
 };
 
+exports['UNSET should delete a primitive'] = function (test) {
+  var store = new Store({
+    foo: 'foo',
+    bar: 'bar'
+  });
+  var store = store.unset('foo');
+  test.ok(!store.hasOwnProperty('foo'));
+  test.equal(store.bar, 'bar');
+  test.done();
+};
+
+exports['UNSET should delete a key from an object'] = function (test) {
+  var store = new Store({
+    foo: {
+      fiz: [1],
+      bar: [2]
+    },
+  });
+  var store = store.foo.unset('fiz');
+  test.ok(store.hasOwnProperty('foo'));
+  test.ok(!store.foo.hasOwnProperty('fiz'));
+  test.deepEqual(store.foo.bar, [2]);
+  test.done();
+};
+
+exports['UNSET should do nothing if the key does not exist on an object'] = function (test) {
+  var store = new Store({
+    bar: [2]
+  });
+  var store = store.unset('foo');
+  test.deepEqual(store.bar, [2]);
+  test.done();
+};
+
 exports['should work with number primitives in array'] = function (test) {
   var store = new Store({
     items: [0]
