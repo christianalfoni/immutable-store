@@ -13,6 +13,16 @@ var utils = {
     } else {
       return obj;
     }
+  },
+  getByPath: function (obj, path) {
+    return path.reduce(function (obj, key) {
+      return obj[key];
+    }, obj)
+  },
+  isSame: function (objA, objB) {
+    return Object.keys(objA).reduce(function (isSame, key) {
+      return isSame ? objA[key] === objB[key] : false;
+    }, true);
   }
 };
 

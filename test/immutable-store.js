@@ -1,5 +1,6 @@
 var Store = require('./../src/Store.js');
 
+
 exports['throws if passing wrong argument'] = function (test) {
   test.throws(function () {
     new Store();
@@ -353,5 +354,198 @@ exports['the path to a store should be empty after deep merge'] = function (test
   test.equal(store.__.path.length, 0);
   var store = store.foo.bar.merge({test: 123});
   test.equal(store.__.path.length, 0);
+  test.done();
+};
+
+exports['should allow mapping functions'] = function (test) {
+  var store = new Store({
+    projects: {},
+    rows: function () {
+      return {
+        value: [],
+        deps: {
+          projects: ['projects']
+        },
+        get: function (ids, deps) {
+          return ids.map(function (id) { return deps.projects[id]; });
+        }
+      }
+    }
+  });
+  test.deepEqual(store.rows, []);
+  test.done();
+};
+
+exports['should run mapping when getting value from store'] = function (test) {
+  var store = new Store({
+    projects: {},
+    rows: function () {
+      return {
+        value: [],
+        deps: {
+          projects: ['projects']
+        },
+        get: function (ids, deps) {
+          test.ok(true);
+          return ids.map(function (id) { return deps.projects[id]; });
+        }
+      }
+    }
+  });
+  store.rows;
+  test.done();
+};
+
+exports['should update value when setting it'] = function (test) {
+  var store = new Store({
+    projects: {
+      '123': true
+    },
+    rows: function () {
+      return {
+        value: [],
+        deps: {
+          projects: ['projects']
+        },
+        get: function (ids, deps) {
+          return ids.map(function (id) { return deps.projects[id]; });
+        }
+      }
+    }
+  });
+  var store = store.set('rows', ['123']);
+  test.equal(store.rows[0], true);
+  test.done();
+};
+
+exports['should only update mapping of new store'] = function (test) {
+  var store = new Store({
+    projects: {
+      '123': true
+    },
+    rows: function () {
+      return {
+        value: [],
+        deps: {
+          projects: ['projects']
+        },
+        get: function (ids, deps) {
+          return ids.map(function (id) { return deps.projects[id]; });
+        }
+      }
+    }
+  });
+  var newStore = store.set('rows', ['123']);
+  test.equal(store.rows[0], undefined);
+  test.equal(newStore.rows[0], true);
+  test.done();
+};
+
+
+exports['should be able to grab mapped values from mapped values'] = function (test) {
+  var store = new Store({
+    projects: {
+      '123': true
+    },
+    rows: function () {
+      return {
+        value: [],
+        deps: {
+          projects: ['projects']
+        },
+        get: function (ids, deps) {
+          return ids.map(function (id) { return deps.projects[id]; });
+        }
+      }
+    },
+    first: function () {
+      return {
+        value: null,
+        deps: {
+          rows: ['rows']
+        },
+        get: function (value, deps) {
+          return deps.rows.length ? deps.rows[0] : null;
+        }
+      };
+    }
+  });
+
+  var newStore = store.set('rows', ['123']);
+  test.equal(store.first, null);
+  test.equal(newStore.first, true);
+  test.done();
+};
+
+exports['should be able to grab values from nested structures'] = function (test) {
+  var store = new Store({
+    projects: {
+      '123': true
+    },
+    admin: {
+      rows: function () {
+        return {
+          value: [],
+          deps: {
+            projects: ['projects']
+          },
+          get: function (ids, deps) {
+            return ids.map(function (id) { return deps.projects[id]; });
+          }
+        }
+      },
+      first: function () {
+        return {
+          value: null,
+          deps: {
+            rows: ['admin', 'rows']
+          },
+          get: function (value, deps) {
+            return deps.rows.length ? deps.rows[0] : null;
+          }
+        };
+      }
+    }
+  });
+  store = store.admin.set('rows', ['123']);
+  test.equal(store.admin.first, true);
+  test.done();
+};
+
+exports['should update when state changes'] = function (test) {
+  var store = new Store({
+    projects: {
+      '123': true,
+      '456': true
+    },
+    rows: function () {
+      return {
+        value: ['123'],
+        deps: {
+          projects: ['projects']
+        },
+        get: function (ids, deps) {
+          return ids.map(function (id) { return deps.projects[id]; });
+        }
+      }
+    },
+    first: function () {
+      return {
+        value: null,
+        deps: {
+          rows: ['rows']
+        },
+        get: function (value, deps) {
+          return deps.rows.length ? deps.rows[0] : null;
+        }
+      };
+    }
+  });
+  var newStore = store.projects.set('123', false);
+  test.equal(store.first, true);
+  test.equal(newStore.first, false);
+  store = newStore.set('rows', ['456']);
+  test.equal(newStore.first, false);
+  test.equal(store.first, true);
   test.done();
 };

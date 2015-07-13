@@ -10,6 +10,7 @@ React JS is still missing a good concept on passing a single store down through 
 - [Installing](#Installing)
 - [The concept](#The-concept)
 - [Defining state](#Defining-state)
+- [Mapping state](#Mapping-state)
 - [Shallow checking](#Shallow-checking)
 - [So why do we need this?](#So-why-do-we-need-this)
 - [So how do we actually put everything together?](#So-how-do-we-actually-put-everything-together)
@@ -61,13 +62,13 @@ var store = Store({
   todos: []
 });
 
-store.todos[0] = 'foo'; 
+store.todos[0] = 'foo';
 store.todos[0] // []
 
-store.todos.push('bar'); 
+store.todos.push('bar');
 store.todos // []
 
-store.todos.splice(0, 0, 'something'); 
+store.todos.splice(0, 0, 'something');
 store.todos // []
 ```
 
@@ -83,16 +84,92 @@ store.todos // []
 
 // Notice the new version of the store is
 // returned
-store = store.todos.push('bar'); 
+store = store.todos.push('bar');
 store.todos // ['bar']
 
 // Notice the new version of the store is
 // returned
-store = store.todos.splice(0, 0, 'something'); 
+store = store.todos.splice(0, 0, 'something');
 store.todos // ['something', 'bar']
 ```
 
 This will ensure that your store will never be mutated, unless you override it. You can of course still use methods like `.map()`, `.filter()` etc. as those are not methods that mutates the store. They will just return an array as expected. So why is this a good thing?
+
+## Mapping state
+Immutable store lets you map state. This is very valuable when you are handling relational state. To give an example of this imagine that you have a list of projects. You want to use this list of projects as the "source of truth". So whenever you want to use a project you can reference it from the list and it will stay updated as you do changes to the "source of truth".
+
+```js
+var store = Store({
+
+  // We convert the list of projects to an object where the keys are the IDs of the projects.
+  // This makes it a lot easier to lookup projects
+  projects: {
+    '123': {id: '123', name: 'foo'},
+    '456': {id: '456', name: 'bar'}
+  },
+
+  // You can define a function which returns an object with three props. Value, deps and a get method.
+  projectRows: function () {
+    return {
+
+      // The initial value you want to return when pointing to: store.projectRows
+      value: [],
+
+      // The deps are whatever other state in the store you want to grab and keep track of
+      deps: {
+        projects: ['projects']
+      },
+
+      // The get method is where you do the mapping. In this example the value of "projectRows" will be a list of project ids.
+      // By mapping over these ids we can use the deps to grab the actual project. So even though the value of "projectRows" is
+      // e.g. ['123', '456'], this state will return [{id: '123', name: 'foo'}, {id: '456', 'bar'}]
+      get: function (value, deps) {
+        return value.map(function (id) {
+          return deps.projects[id];
+        });
+      }
+    };
+  }
+})
+```
+You can access and change these mapped state values like any other value. So if you just wanted to show project '123', you could do: `store = store.set('projectRows', ['123'])`. **Note!** that you can only change the value of a mapped state with `set(key, value)`.
+
+Now, the really cool thing is that you can actually map over an existing mapped state. Maybe for some reason you wanted a state value always show the first project in the projectRows state.
+
+```js
+var store = Store({
+  projects: {
+    '123': {id: '123', name: 'foo'},
+    '456': {id: '456', name: 'bar'}
+  },
+  projectRows: function () {
+    return {
+      value: [],
+      deps: {
+        projects: ['projects']
+      },
+      get: function (value, deps) {
+        return value.map(function (id) {
+          return deps.projects[id];
+        });
+      }
+    };
+  },
+  firstProjectRow: function () {
+    return {
+      value: null,
+      deps: {
+        projectRows: ['projectRows']
+      },
+      get: function (value, deps) {
+        return deps.projectRows[0] || null;
+      }
+    }
+  }
+})
+```
+
+The way mapping works is that whenever you try to grab any of the state, for example using `store.firstProjectRow` the mapping triggers. This result will be cached in case you try to grab the value several times, until either "projects" or the value of "projectRows" changes, in this case.
 
 ## Shallow checking
 In an application you will grab references from the store. To verify if something within the reference has changed you can now do a shallow check. An example of this would be if something in the todos list would change. Maybe a new todo was added, removed or changed. That would cause the list itself to change reference and also the store itself. Your application would know this by just checking its existing reference to the list with the new one:
@@ -116,9 +193,9 @@ store = store.todos[0].set('completed', true);
 if (this.todos !== store.todos.list) {
   // Update some code
 }
-``` 
+```
 
-As you can see, you did not have to go through each item in the array to verify that a change had been done. The list itself was changed, because something nested in it did. 
+As you can see, you did not have to go through each item in the array to verify that a change had been done. The list itself was changed, because something nested in it did.
 
 ## So why do we need this?
 When working with React JS it is important to tell the components when they need to render. The `shouldComponentUpdate` method allows for checking the previous props and state object of the component with the new one to verify if a render is necessary. The check is shallow. A deep check would just strangle the application. A **PureRenderMixin** is available and it does this exact verification.
@@ -225,7 +302,7 @@ module.exports = {
     requestAnimationFrame(function () {
       events.emit('change', store);
     });
-  } 
+  }
 };
 ```
 
@@ -287,7 +364,7 @@ var App = React.createClass({
 // We create a method that renders the application,
 // passing the todos domain of the store
 var render = function (store) {
-  React.render(<App todos={store.todos}/>, document.body); 
+  React.render(<App todos={store.todos}/>, document.body);
 };
 
 // Whenever a change event occurs, we render the application
@@ -359,7 +436,7 @@ If you compare **immutable-store** to the high performance library from Facebook
 **0.2.0**
 - Added **toJS()** and **merge()** methods
 
-**0.1.1** 
+**0.1.1**
 - Fixed bug with **set** where value is object/array
 
 **0.1.0**

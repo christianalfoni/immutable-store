@@ -1,9 +1,12 @@
 'use strict';
 var utils = require('./utils.js');
+var Mapper = require('./Mapper.js');
+
 var StoreObject = function () {
 
   var StoreObjectProto = {
     set: function (key, value) {
+
       return this.__.update(this.__.path, function (obj, helpers, traverse) {
 
         // If an array is set there might be immutable objects in it that needs
@@ -15,10 +18,12 @@ var StoreObject = function () {
             }
           });
         }
+
         helpers.currentPath.push(key);
         obj[key] = traverse(helpers, value);
         helpers.currentPath.pop();
       });
+
     },
     toJS: function () {
       return utils.toJS(this);
@@ -44,14 +49,27 @@ var StoreObject = function () {
 
   return function (props, helpers) {
     var object = Object.create(StoreObjectProto);
-    Object.keys(props).forEach(function (key) {
-      object[key] = props[key];
-    });
+
     Object.defineProperty(object, '__', {
       value: {
         path: helpers.currentPath.slice(0),
-        update: helpers.update
+        update: helpers.update,
+        updateMapping: helpers.updateMapping
       }
+    });
+
+    Object.keys(props).forEach(function (key) {
+
+      // If already is a mapping, reset it with new value
+      var propertyDescription = Object.getOwnPropertyDescriptor(props, key);
+      if (propertyDescription && propertyDescription.get && propertyDescription.set) {
+        helpers.mapper.set(object, key, helpers.mapper.get(object, key));
+      } else if (typeof props[key] === 'function') {
+        helpers.mapper.set(object, key, props[key]());
+      } else {
+        object[key] = props[key];
+      }
+
     });
     return object;
   };

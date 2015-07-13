@@ -1,6 +1,7 @@
 'use strict';
 var StoreArray = require('./StoreArray.js');
 var StoreObject = require('./StoreObject.js');
+var Mapper = require('./Mapper.js');
 
 var unfreeze = function (value, helpers) {
   if (Array.isArray(value)) {
@@ -13,6 +14,7 @@ var unfreeze = function (value, helpers) {
 };
 
 var traverse = function (helpers, value) {
+
   if (Array.isArray(value) && !value.__) {
     var array = value.map(function (item, index) {
       helpers.currentPath.push(index);
@@ -57,6 +59,7 @@ var updatePath = function (helpers, path, cb) {
   // Run the update
   cb(destination, helpers, traverse);
 
+
   // Get ready for new traversal to freeze all paths
   destination = newStore;
   path.forEach(function (pathKey) {
@@ -67,14 +70,28 @@ var updatePath = function (helpers, path, cb) {
 
   // Make ready a new store and freeze it
   var store = StoreObject(newStore, helpers);
+
   Object.keys(newStore).forEach(function (key) {
-    Object.defineProperty(store, key, {
-      enumerable: true,
-      get: function () {
-        helpers.currentStore = this;
-        return newStore[key];
-      }
-    });
+
+    var propertyDescription = Object.getOwnPropertyDescriptor(newStore, key);
+    if (propertyDescription && propertyDescription.get && propertyDescription.set) {
+      Object.defineProperty(store, key, {
+        get: function () {
+          helpers.currentStore = this;
+          return propertyDescription.get();
+        }
+      });
+
+    } else {
+      Object.defineProperty(store, key, {
+        enumerable: true,
+        get: function () {
+          helpers.currentStore = this;
+          return newStore[key];
+        }
+      });
+    }
+
   });
   Object.freeze(store);
   return store;
@@ -86,13 +103,19 @@ var createStore = function (helpers, state) {
     helpers.currentPath.push(key);
     var branch = traverse(helpers, state[key]);
     helpers.currentPath.pop(key);
-    Object.defineProperty(store, key, {
-      enumerable: true,
-      get: function () {
-        helpers.currentStore = this;
-        return branch;
-      }
-    });
+
+    if (typeof state[key] === 'function') {
+      helpers.mapper.set(store, key, state[key](), store);
+    } else {
+      Object.defineProperty(store, key, {
+        enumerable: true,
+        get: function () {
+          helpers.currentStore = this;
+          return branch;
+        }
+      });
+    }
+
   });
   Object.freeze(store);
   return store;
@@ -107,12 +130,26 @@ function Store(state) {
   var helpers = {
     currentPath: [],
     currentStore: null,
+    mapper: null,
     update: function (path, cb) {
       helpers.currentStore = updatePath(helpers, path, cb);
+      return helpers.currentStore;
+    },
+    updateMapping: function (path, key, value) {
+
+      helpers.currentStore = updatePath(helpers, path, function (obj, helpers, traverse) {
+
+        helpers.mapper.set(obj, key, helpers.mapper.get(obj, key));
+        helpers.currentPath.push(key);
+        obj[key] = value;
+        helpers.currentPath.pop();
+
+      });
       return helpers.currentStore;
     }
   };
 
+  helpers.mapper = Mapper(helpers);
   helpers.currentStore = createStore(helpers, state);
   return helpers.currentStore;
 
