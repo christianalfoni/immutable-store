@@ -7,17 +7,17 @@ The library is heavily inspired by [Freezer](https://github.com/arqex/freezer), 
 React JS is still missing a good concept on passing a single store down through the components. Currently you have to pass that state using props, making your components dependant on each other. Hopefully there will soon be a concept where this is solved a bit more elegantly. I wrote an article about this, [True isomorphic apps with React and Baobab](http://christianalfoni.github.io/javascript/2015/03/01/true-isomorphic-apps-with-react-and-baobab.html). It does not use immutable store, but it could very well have been.
 
 ## Overview
-- [Installing](#Installing)
-- [The concept](#The-concept)
-- [Defining state](#Defining-state)
-- [Mapping state](#Mapping-state)
-- [Shallow checking](#Shallow-checking)
-- [So why do we need this?](#So-why-do-we-need-this)
-- [So how do we actually put everything together?](#So-how-do-we-actually-put-everything-together)
-- [What do we gain specifically?](#What-do-we-gain-specifically)
-- [Performance](#Performance)
-- [Changes](#Changes)
-- [Contributing](#Contributing)
+- [Installing](#installing)
+- [The concept](#the-concept)
+- [Defining state](#defining-state)
+- [Mapping state](#mapping-state)
+- [Shallow checking](#shallow-checking)
+- [So why do we need this?](#so-why-do-we-need-this)
+- [So how do we actually put everything together?](#so-how-do-we-actually-put-everything-together)
+- [What do we gain specifically?](#what-do-we-gain-specifically)
+- [Performance](#performance)
+- [Changes](#changes)
+- [Contributing](#contributing)
 
 
 ## Installing
@@ -101,28 +101,35 @@ Immutable store lets you map state. This is very valuable when you are handling 
 ```js
 var store = Store({
 
-  // We convert the list of projects to an object where the keys are the IDs of the projects.
-  // This makes it a lot easier to lookup projects
+  // We convert the list of projects to an object where the keys
+  // are the IDs of the projects. This makes it a lot easier to
+  // lookup projects
   projects: {
     '123': {id: '123', name: 'foo'},
     '456': {id: '456', name: 'bar'}
   },
 
-  // You can define a function which returns an object with three props. Value, deps and a get method.
+  // You can define a function which returns an object with
+  // three props. Value, deps and a get method.
   projectRows: function () {
     return {
 
-      // The initial value you want to return when pointing to: store.projectRows
+      // The initial value you want to return when pointing to:
+      // store.projectRows
       value: [],
 
-      // The deps are whatever other state in the store you want to grab and keep track of
+      // The deps are whatever other state in the store you
+      // want to grab and keep track of
       deps: {
         projects: ['projects']
       },
 
-      // The get method is where you do the mapping. In this example the value of "projectRows" will be a list of project ids.
-      // By mapping over these ids we can use the deps to grab the actual project. So even though the value of "projectRows" is
-      // e.g. ['123', '456'], this state will return [{id: '123', name: 'foo'}, {id: '456', 'bar'}]
+      // The get method is where you do the mapping. In this
+      // example the value of "projectRows" will be a list of
+      // project ids. By mapping over these ids we can use
+      // the deps to grab the actual project. So even though
+      // the value of "projectRows" is e.g. ['123', '456'],
+      // this state will return [{id: '123', name: 'foo'}, {id: '456', 'bar'}]
       get: function (value, deps) {
         return value.map(function (id) {
           return deps.projects[id];
