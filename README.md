@@ -2,10 +2,6 @@
 
 The [immutable-js](https://github.com/facebook/immutable-js) library from Facebook is powerful and fast, though it focuses on data structures in general. Immutable-store is a library that focuses specifically on storing application state. The  mutation API is extremely simple and getting values out of the store is as simple as referencing them with dot notation.
 
-The library is heavily inspired by [Freezer](https://github.com/arqex/freezer), but uses a different approach both internally and as concept. Its goal is to be a contribution to FLUX architecture where you have a central storage that can be passed down through your components. This makes it very easy to create isomorphic apps.
-
-React JS is still missing a good concept on passing a single store down through the components. Currently you have to pass that state using props, making your components dependant on each other. Hopefully there will soon be a concept where this is solved a bit more elegantly. I wrote an article about this, [True isomorphic apps with React and Baobab](http://christianalfoni.github.io/javascript/2015/03/01/true-isomorphic-apps-with-react-and-baobab.html). It does not use immutable store, but it could very well have been.
-
 ## Overview
 - [Installing](#installing)
 - [The concept](#the-concept)
@@ -37,7 +33,7 @@ var store = Store({
 });
 ```
 
-A store contains the data related to what you are displaying in your application. As you can see in the demo the store is put into localStorage and when refreshing the app it is back in its exact state. If you need to cache data, store larger sets of entities etc. that is not the job of the immutable-store. Only put data that you need in the current state of your app into the store.
+A store contains the data related to what you are displaying in your application. As you can see in the demo the store is put into localStorage and when refreshing the app it is back in its exact state.
 
 ## Defining state
 ```javascript
@@ -46,7 +42,7 @@ var store = Store({
 });
 ```
 
-So the domain **todos** now has a list. You grab that list simply by:
+So the state **todos** now has a list. You grab that list simply by:
 
 ```javascript
 var store = Store({
@@ -55,7 +51,7 @@ var store = Store({
 store.todos // []
 ```
 
-But you are not able to change the list in any way, it is completely immutable:
+But you are not able to change the list in any way, it is immutable:
 
 ```javascript
 var store = Store({
