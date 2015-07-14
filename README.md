@@ -9,12 +9,11 @@ The [immutable-js](https://github.com/facebook/immutable-js) library from Facebo
 - [Mapping state](#mapping-state)
 - [Shallow checking](#shallow-checking)
 - [So why do we need this?](#so-why-do-we-need-this)
-- [So how do we actually put everything together?](#so-how-do-we-actually-put-everything-together)
+- [So how do we actually put everything together?](#so-how-do-we-actually-use-the-store)
 - [What do we gain specifically?](#what-do-we-gain-specifically)
 - [Performance](#performance)
 - [Changes](#changes)
 - [Contributing](#contributing)
-
 
 ## Installing
 `npm install immutable-store` or `bower install immutable-store`. You can also download the distributed file in the `dist/` folder.
@@ -89,7 +88,7 @@ store = store.todos.splice(0, 0, 'something');
 store.todos // ['something', 'bar']
 ```
 
-This will ensure that your store will never be mutated, unless you override it. You can of course still use methods like `.map()`, `.filter()` etc. as those are not methods that mutates the store. They will just return an array as expected. So why is this a good thing?
+This will ensure that your store will never be mutated, unless you override it. You can of course still use methods like `.map()`, `.filter()` etc. as those are not methods that mutates the store. They will just return a new array as expected.
 
 ## Mapping state
 Immutable store lets you map state. This is very valuable when you are handling relational state. To give an example of this imagine that you have a list of projects. You want to use this list of projects as the "source of truth". So whenever you want to use a project you can reference it from the list and it will stay updated as you do changes to the "source of truth".
@@ -201,75 +200,35 @@ if (this.todos !== store.todos.list) {
 As you can see, you did not have to go through each item in the array to verify that a change had been done. The list itself was changed, because something nested in it did.
 
 ## So why do we need this?
-When working with React JS it is important to tell the components when they need to render. The `shouldComponentUpdate` method allows for checking the previous props and state object of the component with the new one to verify if a render is necessary. The check is shallow. A deep check would just strangle the application. A **PureRenderMixin** is available and it does this exact verification.
+When working with application state you will change that state over time. Traditionally you will overwrite each current state with a new state, loosing the old state of the application. This can be expressed simply as:
 
-So let us create an example:
+```js
+var state = {
+  foo: 'bar'
+};
 
-```javascript
-var store = Store({
-  todos: []
-});
-
-var App = React.createClass({
-  mixins: [React.addons.PureRenderMixin],
-  render: function () {
-    return (
-      <div>
-        <h1>My application</h1>
-        <TodosList list={this.props.todos}/>
-      </div>
-    );
-  }
-});
-
-var TodosList = React.createClass({
-  mixins: [React.addons.PureRenderMixin],
-  renderTodo: function (todo) {
-    return <li>{todo.title}</li>;
-  },
-  render: function () {
-    return (
-      <ul>
-        {this.props.list.map(this.renderTodo)}
-      </ul>
-    );
-  }
-});
-
-React.render(<App todos={store.todos}/>, document.body);
-
+state.foo = 'bar2'; // state.foo -> 'bar' is now lost
 ```
 
-As you can see our app is only dependant on the list and the **AppComponent** and **TodosList** component will only render when the list actually changes. And it will whenever something is added, removed or changed. To get even more performance you could take it a step further:
+But using the immutable store:
+```js
+var state = Store{
+  foo: 'bar'
+};
 
-```javascript
-var TodosList = React.createClass({
-  mixins: [React.addons.PureRenderMixin],
-  renderTodo: function (todo) {
-    return <Todo todo={todo}/>;
-  },
-  render: function () {
-    return (
-      <ul>
-        {this.props.todos.map(this.renderTodo)}
-      </ul>
-    );
-  }
-});
-
-var Todo = React.createClass({
-  mixins: [React.addons.PureRenderMixin],
-  render: function () {
-    <li>{this.props.todo.title}</li>
-  }
-});
-
+var newState = state.set('foo', 'bar2');
+// state.foo -> 'bar' is now still available
+// newState.foo -> 'bar2'
 ```
 
-Say you had a list with 100 todos with a complex DOM structure. You would only need to render the one that actually changed. And that happens automatically using **immutable-store** and **PureRenderMixin**.
+Also when working with traditional frameworks you put your state "everywhere". You put it in models, collections, views, controllers etc. With an immutable-store you will be putting as much state as you possibly can inside the store, and keep things simple. Everything from models, to a "showUserModal" state, which toggles the display of a modal in your application, is part of this state.
 
-## So how do we actually put everything together?
-You need to know how you mutate the store and you need to know how to react to a change in the store. So lets look at an implementation.
+When you combine immutability with a single state tree you open up new possibilities in developer experience. First of all you have a much better overview of your applications state, but your application itself also has a much better overview. There is only one concept to change and extract state and this can be hooked on to developer tools.
+
+In the near future you will see an explosion of new tools for developers that allows you to control the state of your application. Both forcing specific state, replaying state and move back and forth in time.
+
+## So how do we actually use the store?
+You need to know how you mutate the store and you need to know how to react to a change in the store. So lets look at a simple implementation:
 
 *events.js*
 ```javascript
@@ -284,106 +243,58 @@ module.exports = new EventEmitter();
 var Store = require('immutable-store');
 var events = require('./events.js');
 
-// We define our store
 var store = Store({
   todos: []
 });
 
-// To share store between multiple files we
-// export a getter and a setter. The setter
-// will trigger a change event, passing the store
-module.exports = {
-  get: function () {
-    return store;
-  },
-  set: function (updatedStore) {
-    store = updatedStore;
-
-    // We choose to wait for next animation frame
-    // before triggering the change. This gives React JS
-    // 16ms to check its rendering before next frame
-    requestAnimationFrame(function () {
-      events.emit('change', store);
-    });
-  }
-};
-```
-
-*actions.js*
-```javascript
-var Store = require('./Store.js');
-var events = require('./events.js');
-
-// We define a single action
 module.exports = {
   addTodo: function (title) {
-
-    // We get the latest version of the store
-    var store = Store.get();
-
-    // We update the todos list and put it into
-    // a new store reference
     store = store.todos.push({
       title: title,
       completed: false
     });
-
-    // Since we have a central event hub we
-    // can trigger any event at any time, which
-    // is good to handle state transitions
-    events.emit('todo.added');
-
-    // When we are done mutating we set the new store
-    // also triggering a change event
-    Store.set(store);
+    events.emit('change', store);
   }
 };
 ```
 
-*main.js*
+*View.js*
 ```javascript
-var Store = require('./Store.js');
+var store = require('./Store.js');
 var events = require('./events.js');
-var actions = require('./actions.js');
 
-// We create a simple app
-var App = React.createClass({
-  mixins: [React.addons.PureRenderMixin],
-  addTodo: function () {
-    actions.addTodo(this.refs.input.getDOMNode().value);
-  },
-  render: function () {
-    return (
-      <div>
-        <h1>You got {this.props.todos.length} todos</h1>
-        <form onSubmit={this.addTodo}>
-          <input ref="input"/>
-        </form>
-      </div>
-    );
+// We grab the initial todos and set them to a variable
+var todos = store.todos;
+
+// We create a simple render method for this view. Rendering
+// a count for the completed todos
+var render = function () {
+  document.querySelector('#completedCount').innerText = todos.filter(function (todo) {
+    return todo.completed;
+  }).length;
+};
+
+// We register an event for change. The good thing here is that we only have one
+// event being emitted. The little IF check in the callback ensures that we only
+// render when there actually is a change on or inside the todos array
+events.on('change', function (updatedStore) {
+  if (todos !== updatedStore.todos) {
+    todos = updatedStore.todos;
+    render();
   }
 });
 
-// We create a method that renders the application,
-// passing the todos domain of the store
-var render = function (store) {
-  React.render(<App todos={store.todos}/>, document.body);
-};
+// Do the initial render
+render();
 
-// Whenever a change event occurs, we render the application
-// again
-events.on('change', render);
-
-// And pass the store for the initial render
-render(store);
 ```
 
 ## What do we gain specifically?
 By using the immutable-store we get three advantages:
 
-1. It is not possible to change the values of the store directly. You have to override the existing store with the reference returned from a mutation
+1. It is not possible to change the values of the store directly. You have to override the existing store with the reference returned from a mutation. This avoids unwanted mutations on shared state
 
-2. Whenever an object/array changes in the store, their parent object/arrays will also change their reference. This allows for React JS `shouldComponentUpdate`, or anything else for that matter, to verify that a change has actually happened with shallow checking
+2. Whenever an object/array changes in the store, their parent object/arrays will also change their reference. This allows you to use a single ouput on any state change, for example with a "change" event, and use simple IF statements to verify if a change in the UI is necessary
 
 3. We get an extremely simple API for handling immutable data
 
@@ -393,6 +304,7 @@ The following data structures can be saved in a Store:
 - Object literals
 - Arrays
 - Primitives (e.g. strings, numbers, booleans)
+- Functions (To describe mapped state)
 
 The following data structures are *not* supported:
 - [Getters](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/get) on objects
@@ -424,9 +336,12 @@ store = store.unset('primitive');
 ```
 
 ## Performance
-If you compare **immutable-store** to the high performance library from Facebook [immutable-js](https://github.com/facebook/immutable-js) immutable-store is around 80% slower on setters, but 100% faster on getters. That said, number of operations are huge, so neither will ever cause a bottleneck in your application.
+If you compare **immutable-store** to the high performance library from Facebook [immutable-js](https://github.com/facebook/immutable-js) immutable-store is around 80% slower on setters, but 100% faster on getters. That said, number of operations are huge and it does not really present real life usage. So to conclude... it does not matter.
 
 ## Changes
+**0.4.0**:
+- Added mapping of state
+
 **0.2.3**
 - Fixed path bug on store (thanks @jrust)
 
