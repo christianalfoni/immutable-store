@@ -10,7 +10,7 @@ var StoreArray = function () {
   }
   StoreArray.prototype = Object.create(Array.prototype);
   StoreArray.prototype.push = function (item) {
-    return this.__.update(this.__.path, function (obj, helpers, traverse) {
+    return this.__.update(this, function (obj, helpers, traverse) {
       helpers.currentPath.push(obj.length);
       Array.prototype.push.call(obj, traverse(helpers, item));
       helpers.currentPath.pop();
@@ -20,7 +20,7 @@ var StoreArray = function () {
     var args = [].slice.call(arguments, 0);
     var startIndex = args.shift();
     var count = args.shift();
-    return this.__.update(this.__.path, function (obj, helpers, traverse) {
+    return this.__.update(this, function (obj, helpers, traverse) {
 
       var additions = args.map(function (arg, index) {
         helpers.currentPath.push(startIndex + index);
@@ -43,7 +43,7 @@ var StoreArray = function () {
   };
   StoreArray.prototype.concat = function () {
     var args = [].slice.call(arguments, 0);
-    return this.__.update(this.__.path, function (obj, helpers, traverse) {
+    return this.__.update(this, function (obj, helpers, traverse) {
       args.map(function (arg) {
         if (Array.isArray(arg)) {
           arg.map(function (deepArg) {
@@ -60,7 +60,7 @@ var StoreArray = function () {
     });
   };
   StoreArray.prototype.unshift = function (item) {
-    return this.__.update(this.__.path, function (obj, helpers, traverse) {
+    return this.__.update(this, function (obj, helpers, traverse) {
       Array.prototype.unshift.call(obj, traverse(helpers, item));
 
       // Update paths
@@ -74,7 +74,7 @@ var StoreArray = function () {
     });
   };
   StoreArray.prototype.shift = function () {
-    return this.__.update(this.__.path, function (obj, helpers, traverse) {
+    return this.__.update(this, function (obj, helpers, traverse) {
       Array.prototype.shift.call(obj);
 
       // Update paths
@@ -88,7 +88,7 @@ var StoreArray = function () {
     });
   };
   StoreArray.prototype.pop = function () {
-    return this.__.update(this.__.path, function (obj) {
+    return this.__.update(this, function (obj) {
       Array.prototype.pop.call(obj);
     });
   };

@@ -1,6 +1,5 @@
 var Store = require('./../src/Store.js');
 
-
 exports['throws if passing wrong argument'] = function (test) {
   test.throws(function () {
     new Store();
@@ -27,6 +26,25 @@ exports['can mutate the store by using set'] = function (test) {
   var newStore = store.set('foo', 'bar');
   test.ok(!store.foo);
   test.equal(newStore.foo, 'bar');
+  test.done();
+};
+
+exports['should not keep state across instances'] = function (test) {
+  var initialStore = new Store({});
+  var newStore = initialStore;
+
+  newStore = newStore.set('foo', 'bar');
+  test.ok(!initialStore.foo);
+  test.equal(newStore.foo, 'bar');
+
+  newStore = newStore.set('bar', 'foo');
+  test.ok(!initialStore.bar);
+  test.equal(newStore.bar, 'foo');
+
+  newStore = initialStore;
+  newStore = newStore.set('foo', 'bar');
+  test.ok(!newStore.bar);
+
   test.done();
 };
 

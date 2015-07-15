@@ -40,9 +40,15 @@ var traverse = function (helpers, value) {
   }
 };
 
-var updatePath = function (helpers, path, cb) {
+var updatePath = function (helpers, obj, cb) {
 
   helpers.currentPath = [];
+
+  var path = obj.__.path;
+
+  if (!path.length) {
+    helpers.currentStore = obj;
+  }
 
   // Unfreeze the store, ready for traversal
   var newStore = unfreeze(helpers.currentStore, helpers);

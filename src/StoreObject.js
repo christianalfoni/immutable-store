@@ -7,7 +7,7 @@ var StoreObject = function () {
   var StoreObjectProto = {
     set: function (key, value) {
 
-      return this.__.update(this.__.path, function (obj, helpers, traverse) {
+      return this.__.update(this, function (obj, helpers, traverse) {
 
         // If an array is set there might be immutable objects in it that needs
         // a path update
@@ -32,7 +32,7 @@ var StoreObject = function () {
       if (Array.isArray(mergeObj) || typeof mergeObj !== 'object' || mergeObj === null) {
         throw new Error('You have to pass an object to the merge method');
       }
-      return this.__.update(this.__.path, function (obj, helpers, traverse) {
+      return this.__.update(this, function (obj, helpers, traverse) {
         Object.keys(mergeObj).forEach(function (key) {
           helpers.currentPath.push(key);
           obj[key] = traverse(helpers, mergeObj[key]);
@@ -41,7 +41,7 @@ var StoreObject = function () {
       });
     },
     unset: function(key) {
-      return this.__.update(this.__.path, function (obj) {
+      return this.__.update(this, function (obj) {
         delete obj[key];
       });
     }
