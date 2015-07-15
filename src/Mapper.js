@@ -49,6 +49,7 @@ module.exports = function (helpers) {
         },
         set: function (newValue) {
           value = newValue;
+          mapper.value = newValue;
         },
         enumerable: true,
         configurable: true

@@ -567,3 +567,28 @@ exports['should update when state changes'] = function (test) {
   test.equal(store.first, true);
   test.done();
 };
+
+exports['should stay when other state changes'] = function (test) {
+  var store = new Store({
+    projects: {
+      '123': true
+    },
+    rows: function () {
+      return {
+        value: [],
+        deps: {
+          projects: ['projects']
+        },
+        get: function (ids, deps) {
+          return ids.map(function (id) { return deps.projects[id]; });
+        }
+      }
+    },
+    foo: 'bar'
+  });
+  var newStore = store.set('rows', ['123']);
+  newStore = store.set('foo', 'bar');
+  test.equal(store.rows[0], undefined);
+  test.equal(newStore.rows[0], true);
+  test.done();
+};
