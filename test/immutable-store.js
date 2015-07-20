@@ -568,7 +568,7 @@ exports['should update when state changes'] = function (test) {
   test.done();
 };
 
-exports['should stay when other state changes'] = function (test) {
+exports['should stay when other state changes, but not override other instances'] = function (test) {
   var store = new Store({
     projects: {
       '123': true
@@ -588,7 +588,133 @@ exports['should stay when other state changes'] = function (test) {
   });
   var newStore = store.set('rows', ['123']);
   newStore = store.set('foo', 'bar');
-  test.equal(store.rows[0], undefined);
+  test.equal(store.rows.length, 0);
   test.equal(newStore.rows[0], true);
+  test.done();
+};
+
+exports['should extract current value using toJS on mapping'] = function (test) {
+  var store = new Store({
+    rows: function () {
+      return {
+        value: ['foo'],
+        deps: {},
+        get: function (values, deps) {
+          return values.map(function (value) {
+            return value + 1;
+          });
+        }
+      }
+    }
+  });
+  var exp = store.toJS();
+  test.deepEqual(exp, {
+    rows: ['foo1']
+  });
+  store = store.set('rows', ['bar']);
+  var exp = store.toJS();
+  test.deepEqual(exp, {
+    rows: ['bar1']
+  });
+  test.done();
+};
+
+exports['should have a method that exports mapping values'] = function (test) {
+  var store = new Store({
+    rows: function () {
+      return {
+        value: ['foo'],
+        deps: {},
+        get: function (values, deps) {
+          return values.map(function (value) {
+            return value + 1;
+          });
+        }
+      }
+    }
+  });
+  var exp = store.export();
+  test.deepEqual(exp, {
+    rows: ['foo']
+  });
+  store = store.set('rows', ['bar']);
+  var exp = store.export();
+  test.deepEqual(exp, {
+    rows: ['bar']
+  });
+  test.done();
+};
+
+exports['should have a method that imports values and upholds mappings'] = function (test) {
+  var store = new Store({
+    rows: function () {
+      return {
+        value: [],
+        deps: {},
+        get: function (values, deps) {
+          return values.map(function (value) {
+            return value + 1;
+          });
+        }
+      }
+    },
+    foo: 'bar'
+  });
+  store = store.import({
+    rows: ['foo'],
+    foo: 'bar2'
+  });
+  test.deepEqual(store.toJS(), {
+    rows: ['foo1'],
+    foo: 'bar2'
+  });
+  test.done();
+};
+
+exports['should be able to do complex partial imports'] = function (test) {
+  var store = new Store({
+    rows: function () {
+      return {
+        value: [],
+        deps: {},
+        get: function (values, deps) {
+          return values.map(function (value) {
+            return value + 1;
+          });
+        }
+      }
+    },
+    admin: {
+      foo: 'bar',
+      bar: 'foo',
+      map: function () {
+        return {
+          value: [],
+          deps: {},
+          get: function (values, deps) {
+            return values.map(function (value) {
+              return value + 1;
+            });
+          }
+        }
+      }
+    }
+  });
+  store = store.import({
+    rows: ['foo'],
+    foo: 'bar',
+    admin: {
+      map: ['foo']
+    }
+  });
+  test.deepEqual(store.toJS(), {
+    rows: ['foo1'],
+    foo: 'bar',
+    admin: {
+      foo: 'bar',
+      bar: 'foo',
+      map: ['foo1']
+    }
+  });
   test.done();
 };

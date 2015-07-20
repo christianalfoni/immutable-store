@@ -2,6 +2,7 @@
 var StoreArray = require('./StoreArray.js');
 var StoreObject = require('./StoreObject.js');
 var Mapper = require('./Mapper.js');
+var utils = require('./utils.js');
 
 var unfreeze = function (value, helpers) {
   if (Array.isArray(value)) {
@@ -99,6 +100,21 @@ var updatePath = function (helpers, obj, cb) {
     }
 
   });
+
+  Object.defineProperty(store, 'export', {
+    enumerable: false,
+    value: function () {
+      return utils.export(store, helpers.mapper);
+    }
+  });
+
+  Object.defineProperty(store, 'import', {
+    enumerable: false,
+    value: function (obj) {
+      return utils.import(obj, helpers, []);
+    }
+  });
+
   Object.freeze(store);
   return store;
 };
@@ -121,8 +137,22 @@ var createStore = function (helpers, state) {
         }
       });
     }
-
   });
+
+  Object.defineProperty(store, 'export', {
+    enumerable: false,
+    value: function () {
+      return utils.export(store, helpers.mapper);
+    }
+  });
+
+  Object.defineProperty(store, 'import', {
+    enumerable: false,
+    value: function (obj) {
+      return utils.import(obj, helpers, []);
+    }
+  });
+
   Object.freeze(store);
   return store;
 };

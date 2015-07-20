@@ -7,12 +7,12 @@ The [immutable-js](https://github.com/facebook/immutable-js) library from Facebo
 - [The concept](#the-concept)
 - [Defining state](#defining-state)
 - [Mapping state](#mapping-state)
+- [Import and export](#import-and-export)
 - [Shallow checking](#shallow-checking)
 - [So why do we need this?](#so-why-do-we-need-this)
 - [So how do we actually put everything together?](#so-how-do-we-actually-use-the-store)
 - [What do we gain specifically?](#what-do-we-gain-specifically)
 - [Performance](#performance)
-- [Changes](#changes)
 - [Contributing](#contributing)
 
 ## Installing
@@ -172,6 +172,62 @@ var store = Store({
 ```
 
 The way mapping works is that whenever you try to grab any of the state, for example using `store.firstProjectRow` the mapping triggers. This result will be cached in case you try to grab the value several times, until either "projects" or the value of "projectRows" changes, in this case.
+
+## Import and export
+You can import and export state on an existing store.
+```js
+var store = Store({
+  foo: 'bar'
+});
+store = store.import({
+  foo: 'bar2'
+});
+store.foo // "bar2"
+```
+
+You can of course do this with nested structures as well, but the big benefit is when you have mapped state.
+```js
+var store = Store({
+  rows: function () {
+    return {
+      value: [1, 2, 3],
+      deps: {},
+      get: function (values, deps) {
+        return values.map(function () {
+          return values + 1;
+        });
+      }
+    };
+  }
+});
+store.rows // [2, 3, 4]
+store.toJS(); // {rows: [2, 3, 4]}
+store = store.import({
+  rows: [6, 7, 8]
+});
+store.rows // [7, 8, 9]
+store.toJS(); // {rows: [7, 8, 9]}
+```
+But when you export a store, you will not export the current values of a mapped state, but its "internal value".
+```js
+var store = Store({
+  rows: function () {
+    return {
+      value: [1, 2, 3],
+      deps: {},
+      get: function (values, deps) {
+        return values.map(function () {
+          return values + 1;
+        });
+      }
+    };
+  }
+});
+store.rows // [2, 3, 4]
+store.toJS(); // {rows: [2, 3, 4]}
+store.export(); // {rows: [1, 2, 3]}
+```
+This allows you to even save mapped state to a server and reproduce at a later point in time.
 
 ## Shallow checking
 In an application you will grab references from the store. To verify if something within the reference has changed you can now do a shallow check. An example of this would be if something in the todos list would change. Maybe a new todo was added, removed or changed. That would cause the list itself to change reference and also the store itself. Your application would know this by just checking its existing reference to the list with the new one:
@@ -337,28 +393,6 @@ store = store.unset('primitive');
 
 ## Performance
 If you compare **immutable-store** to the high performance library from Facebook [immutable-js](https://github.com/facebook/immutable-js) immutable-store is around 80% slower on setters, but 100% faster on getters. That said, number of operations are huge and it does not really present real life usage. So to conclude... it does not matter.
-
-## Changes
-**0.4.0**:
-- Added mapping of state
-
-**0.2.3**
-- Fixed path bug on store (thanks @jrust)
-
-**0.2.2**
-- Fixed array bug using number primitives
-
-**0.2.1**
-- Fixed using **set()** on the store itself
-
-**0.2.0**
-- Added **toJS()** and **merge()** methods
-
-**0.1.1**
-- Fixed bug with **set** where value is object/array
-
-**0.1.0**
-- Initial commit
 
 ## Contributing
 - `npm install` install deps

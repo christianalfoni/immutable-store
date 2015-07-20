@@ -14,6 +14,40 @@ var utils = {
       return obj;
     }
   },
+  export: function (obj, mapping) {
+
+    if (obj instanceof Array) {
+      return obj.map(function (obj) {
+        return utils.export(obj, mapping);
+      });
+    } else if (typeof obj === 'object' && obj !== null) {
+      return Object.keys(obj).reduce(function (newObj, key) {
+
+        if (obj.__ && mapping.get(obj, key)) {
+          newObj[key] = mapping.get(obj, key).value;
+        } else {
+          newObj[key] = utils.export(obj[key], mapping);
+        }
+        return newObj;
+      }, {});
+    } else {
+      return obj;
+    }
+  },
+  import: function (obj, helpers, path) {
+    return Object.keys(obj).reduce(function (store, key) {
+
+      if (!(obj[key] instanceof Array) && typeof obj[key] === 'object' && obj[key] !== null && utils.getByPath(store, path)) {
+        path.push(key);
+        return utils.import(obj[key], helpers, path);
+        path.pop();
+      } else {
+        return utils.getByPath(store, path).set(key, obj[key]);
+      }
+
+    }, helpers.currentStore);
+
+  },
   getByPath: function (obj, path) {
     return path.reduce(function (obj, key) {
       return obj[key];
