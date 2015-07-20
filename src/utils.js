@@ -39,8 +39,9 @@ var utils = {
 
       if (!(obj[key] instanceof Array) && typeof obj[key] === 'object' && obj[key] !== null && utils.getByPath(store, path)) {
         path.push(key);
-        return utils.import(obj[key], helpers, path);
+        var result = utils.import(obj[key], helpers, path);
         path.pop();
+        return result;
       } else {
         return utils.getByPath(store, path).set(key, obj[key]);
       }

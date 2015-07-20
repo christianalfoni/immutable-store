@@ -673,6 +673,7 @@ exports['should have a method that imports values and upholds mappings'] = funct
 
 exports['should be able to do complex partial imports'] = function (test) {
   var store = new Store({
+    obj: {},
     rows: function () {
       return {
         value: [],
@@ -701,6 +702,7 @@ exports['should be able to do complex partial imports'] = function (test) {
     }
   });
   store = store.import({
+    obj: {},
     rows: ['foo'],
     foo: 'bar',
     admin: {
@@ -708,6 +710,7 @@ exports['should be able to do complex partial imports'] = function (test) {
     }
   });
   test.deepEqual(store.toJS(), {
+    obj: {},
     rows: ['foo1'],
     foo: 'bar',
     admin: {
