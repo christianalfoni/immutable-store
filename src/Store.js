@@ -167,7 +167,9 @@ function Store(state) {
     currentPath: [],
     currentStore: null,
     mapper: null,
+    currentMapping: {},
     update: function (path, cb) {
+      helpers.currentMapping = utils.copyObject(helpers.currentMapping);
       helpers.currentStore = updatePath(helpers, path, cb);
       return helpers.currentStore;
     },

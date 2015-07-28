@@ -2,12 +2,10 @@ var utils = require('./utils.js');
 
 module.exports = function (helpers) {
 
-  var mappings = {};
-
   return {
     set: function (object, key, mapper, newStore) {
 
-      mappings[object.__.path.slice().concat(key).join('')] = mapper;
+      object.__.currentMapping[object.__.path.slice().concat(key).join('')] = utils.copyObject(mapper);
 
       var value = mapper.value;
       var cachedGet = null;
@@ -56,7 +54,7 @@ module.exports = function (helpers) {
       });
     },
     get: function (object, key) {
-      return mappings[object.__.path.slice().concat(key).join('')];
+      return helpers.currentStore.__.currentMapping[object.__.path.slice().concat(key).join('')];
     }
   }
 

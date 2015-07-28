@@ -58,6 +58,12 @@ var utils = {
     return Object.keys(objA).reduce(function (isSame, key) {
       return isSame ? objA[key] === objB[key] : false;
     }, true);
+  },
+  copyObject: function (obj) {
+    return Object.keys(obj).reduce(function (newObj, key) {
+      newObj[key] = obj[key];
+      return newObj;
+    }, {});
   }
 };
 

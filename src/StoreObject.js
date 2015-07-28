@@ -54,7 +54,8 @@ var StoreObject = function () {
       value: {
         path: helpers.currentPath.slice(0),
         update: helpers.update,
-        updateMapping: helpers.updateMapping
+        updateMapping: helpers.updateMapping,
+        currentMapping: helpers.currentMapping
       }
     });
 
