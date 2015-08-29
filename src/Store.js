@@ -173,9 +173,9 @@ function Store(state) {
       helpers.currentMapping = utils.copyObject(helpers.currentMapping);
 
       // Go through each path that has a dep to this and update
-      if (helpers.depsOverview[obj.__.path.join('')]) {
-
-        helpers.depsOverview[obj.__.path.join('')].forEach(function (dep) {
+      var pathString = obj.__.path.join('');
+      if (helpers.depsOverview[pathString]) {
+        helpers.depsOverview[pathString].forEach(function (dep) {
           helpers.currentStore = updatePath(helpers, dep);
         });
       }
@@ -183,7 +183,6 @@ function Store(state) {
       return helpers.currentStore;
     },
     updateMapping: function (path, key, value) {
-
       helpers.currentStore = updatePath(helpers, path, function (obj, helpers, traverse) {
 
         helpers.mapper.set(obj, key, helpers.mapper.get(obj, key));

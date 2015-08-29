@@ -1,6 +1,6 @@
 {
   "name": "immutable-store",
-  "version": "0.5.3",
+  "version": "0.5.4",
   "description": "An immutable store for FLUX architecture",
   "main": "src/Store.js",
   "scripts": {

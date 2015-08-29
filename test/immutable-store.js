@@ -611,12 +611,12 @@ exports['should update when state changes'] = function (test) {
     },
     first: function () {
       return {
-        value: null,
+        value: 'mip',
         deps: {
           rows: ['rows']
         },
         get: function (value, deps) {
-          return deps.rows.length ? deps.rows[0] : null;
+          return deps.rows.length ? deps.rows[0] : 'mip';
         }
       };
     }

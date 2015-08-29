@@ -14,7 +14,7 @@ module.exports = function (helpers) {
       });
 
       var value = mapper.value;
-      var cachedGet = null;
+      var cachedGet = undefined;
       var currentDeps = null;
       var currentStore = helpers.currentStore;
       var getDeps = function () {
@@ -25,7 +25,7 @@ module.exports = function (helpers) {
       };
       var hasChanged = function () {
         var deps = getDeps();
-        return utils.isSame(deps, currentDeps);
+        return !utils.isSame(deps, currentDeps);
       };
       // Grab dep values and create a change checker.
       // When getter runs decide if
@@ -37,18 +37,20 @@ module.exports = function (helpers) {
             helpers.currentStore = newStore;
           }
 
-          if (currentStore !== helpers.currentStore) {
+          if (currentStore !== helpers.currentStore && currentDeps && hasChanged()) {
             currentDeps = getDeps();
             return mapper.get(value, currentDeps);
           }
+
           if (currentDeps && hasChanged()) {
             cachedGet = mapper.get(value, currentDeps);
             return cachedGet;
-          } else if (currentDeps) {
+          } else if (currentDeps && cachedGet !== undefined) {
             return cachedGet;
           } else {
             currentDeps = getDeps();
-            return mapper.get(value, currentDeps);
+            cachedGet = mapper.get(value, currentDeps);
+            return cachedGet;
           }
         },
         set: function (newValue) {
