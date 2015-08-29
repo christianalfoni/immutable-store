@@ -495,6 +495,68 @@ exports['should be able to grab mapped values from mapped values'] = function (t
   test.done();
 };
 
+exports['should change references of parents when mapped value is changed'] = function (test) {
+  var store = new Store({
+    projects: {
+      '123': true
+    },
+    foo: {
+      bar: {
+        rows: function () {
+          return {
+            value: [],
+            deps: {
+              projects: ['projects']
+            },
+            get: function (ids, deps) {
+              return ids.map(function (id) { return deps.projects[id]; });
+            }
+          }
+        }
+      }
+    }
+  });
+
+  var oldBar = store.foo.bar;
+  var oldFoo = store.foo;
+  var newStore = store.foo.bar.set('rows', ['123']);
+  test.equal(newStore.foo.bar.rows[0], true);
+  test.notEqual(newStore.foo, oldFoo);
+  test.notEqual(newStore.foo.bar, oldBar);
+  test.done();
+};
+
+exports['should change references of parents when dependency value is changed'] = function (test) {
+  var store = new Store({
+    projects: {
+      '123': true
+    },
+    foo: {
+      bar: {
+        rows: function () {
+          return {
+            value: ['123'],
+            deps: {
+              projects: ['projects']
+            },
+            get: function (ids, deps) {
+              return ids.map(function (id) { return deps.projects[id]; });
+            }
+          }
+        }
+      }
+    }
+  });
+
+  var oldBar = store.foo.bar;
+  var oldFoo = store.foo;
+  var newStore = store.projects.set('123', false);
+  test.equal(newStore.foo.bar.rows[0], false);
+  test.notEqual(newStore.foo, oldFoo);
+  test.notEqual(newStore.foo.bar, oldBar);
+  test.done();
+};
+
 exports['should be able to grab values from nested structures'] = function (test) {
   var store = new Store({
     projects: {

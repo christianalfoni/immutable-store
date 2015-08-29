@@ -64,7 +64,7 @@ var updatePath = function (helpers, obj, cb) {
   });
 
   // Run the update
-  cb(destination, helpers, traverse);
+  cb && cb(destination, helpers, traverse);
 
 
   // Get ready for new traversal to freeze all paths
@@ -168,9 +168,18 @@ function Store(state) {
     currentStore: null,
     mapper: null,
     currentMapping: {},
-    update: function (path, cb) {
+    depsOverview: {},
+    update: function (obj, cb) {
       helpers.currentMapping = utils.copyObject(helpers.currentMapping);
-      helpers.currentStore = updatePath(helpers, path, cb);
+
+      // Go through each path that has a dep to this and update
+      if (helpers.depsOverview[obj.__.path.join('')]) {
+
+        helpers.depsOverview[obj.__.path.join('')].forEach(function (dep) {
+          helpers.currentStore = updatePath(helpers, dep);
+        });
+      }
+      helpers.currentStore = updatePath(helpers, obj, cb);
       return helpers.currentStore;
     },
     updateMapping: function (path, key, value) {

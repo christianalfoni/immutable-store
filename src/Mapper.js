@@ -7,6 +7,12 @@ module.exports = function (helpers) {
 
       object.__.currentMapping[object.__.path.slice().concat(key).join('')] = utils.copyObject(mapper);
 
+      Object.keys(mapper.deps).forEach(function (dep) {
+        var pathString = mapper.deps[dep].join('');
+        helpers.depsOverview[pathString] = helpers.depsOverview[pathString] || [];
+        helpers.depsOverview[pathString].push(object);
+      });
+
       var value = mapper.value;
       var cachedGet = null;
       var currentDeps = null;
