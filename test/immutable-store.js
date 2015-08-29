@@ -526,6 +526,33 @@ exports['should change references of parents when mapped value is changed'] = fu
   test.done();
 };
 
+exports['should make mapped values immutable'] = function (test) {
+  var store = new Store({
+    projects: {
+      '123': true
+    },
+    rows: function () {
+      return {
+        value: ['123'],
+        deps: {
+          projects: ['projects']
+        },
+        get: function (ids, deps) {
+          return ids.map(function (id) { return deps.projects[id]; });
+        }
+      }
+    }
+  });
+
+  test.doesNotThrow(function () {
+    store.rows.toJS();
+  });
+  test.deepEqual(store.rows.toJS(), [true]);
+  store.rows[1] = 'bobo';
+  test.equals(store.rows.length, 1);
+  test.done();
+};
+
 exports['should change references of parents when dependency value is changed'] = function (test) {
   var store = new Store({
     projects: {

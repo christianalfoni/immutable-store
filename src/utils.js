@@ -14,6 +14,30 @@ var utils = {
       return obj;
     }
   },
+  makeImmutable: function (obj) {
+    if (obj instanceof Array) {
+      var val = obj.map(function (obj) {
+        return utils.makeImmutable(obj);
+      });
+      Object.defineProperty(val, 'toJS', {
+        value: utils.toJS.bind(null, val)
+      });
+      Object.freeze(val);
+      return val;
+    } else if (typeof obj === 'object' && obj !== null) {
+      var val = Object.keys(obj).reduce(function (newObj, key) {
+        newObj[key] = utils.makeImmutable(obj[key]);
+        return newObj;
+      }, {});
+      Object.defineProperty(val, 'toJS', {
+        value: utils.toJS.bind(null, val)
+      });
+      Object.freeze(val);
+      return val;
+    } else {
+      return obj;
+    }
+  },
   export: function (obj, mapping) {
 
     if (obj instanceof Array) {

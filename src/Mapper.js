@@ -39,17 +39,18 @@ module.exports = function (helpers) {
 
           if (currentStore !== helpers.currentStore && currentDeps && hasChanged()) {
             currentDeps = getDeps();
-            return mapper.get(value, currentDeps);
+            cachedGet = utils.makeImmutable(mapper.get(value, currentDeps));
+            return cachedGet;
           }
 
           if (currentDeps && hasChanged()) {
-            cachedGet = mapper.get(value, currentDeps);
+            cachedGet = utils.makeImmutable(mapper.get(value, currentDeps));
             return cachedGet;
           } else if (currentDeps && cachedGet !== undefined) {
             return cachedGet;
           } else {
             currentDeps = getDeps();
-            cachedGet = mapper.get(value, currentDeps);
+            cachedGet = utils.makeImmutable(mapper.get(value, currentDeps));
             return cachedGet;
           }
         },
