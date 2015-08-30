@@ -5,9 +5,18 @@ var StoreArray = function () {
   function StoreArray(items) {
     var inst = Array.apply(Array);
     inst = inst.concat(items);
-    inst.__proto__ = StoreArray.prototype;
-    return inst;
+    return injectClassMethods(inst);
   }
+
+  function injectClassMethods(collection) {
+        for (var method in StoreArray.prototype) {
+            if (StoreArray.prototype.hasOwnProperty(method)){
+                collection[method] = StoreArray.prototype[method];
+            }
+        }
+        return collection;
+  };
+
   StoreArray.prototype = Object.create(Array.prototype);
   StoreArray.prototype.push = function (item) {
     return this.__.update(this, function (obj, helpers, traverse) {
