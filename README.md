@@ -1,5 +1,8 @@
 # immutable-store
 
+## DEPRECATED
+The story of immutable-store was that [Baobab](https://github.com/Yomguithereal/baobab) was a bit behind on introducing immutability and the facets was defined outside the state tree. With the version 2 release of Baobab this will be fixed. Baobab is an amazing project that first got me to think about storing application state in one state tree. The performance is also a lot better than immutable-store. With efforts on [Cerebral](http://www.christianalfoni.com/cerebral) I have decided to DEPRECATE this project.
+
 The [immutable-js](https://github.com/facebook/immutable-js) library from Facebook is powerful and fast, though it focuses on data structures in general. Immutable-store is a library that focuses specifically on storing application state. The  mutation API is extremely simple and getting values out of the store is as simple as referencing them with dot notation.
 
 ## Overview
